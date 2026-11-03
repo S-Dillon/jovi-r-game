@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>R Quest – Learn R by Playing</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Code editor (CodeMirror 5 with R syntax highlighting) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/r/r.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
+
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Top-right HUD (always visible): player rank + XP, and R engine status -->
+  <div class="hud">
+    <div class="player-hud" id="player-hud" title="Your rank and total XP"></div>
+    <div id="r-status" class="r-status loading" title="The R engine runs inside your browser">
+      <span class="dot"></span><span class="label">Starting R…</span>
+    </div>
+  </div>
+
+  <!-- ============ MAIN MENU ============ -->
+  <section id="screen-menu" class="screen active">
+    <div class="menu-bg" aria-hidden="true"></div>
+    <div class="menu-wrap">
+      <div class="logo">
+        <div class="logo-badge">R</div>
+        <div>
+          <h1>R&nbsp;Quest</h1>
+          <p class="tagline">From your first <code>print()</code> to advanced data wrangling. YEE-HAW!</p>
+        </div>
+      </div>
+
+      <div class="menu-player" id="menu-player"></div>
+
+      <nav class="menu-buttons">
+        <button class="btn btn-primary btn-big" id="btn-continue">Start Adventure</button>
+        <button class="btn btn-big" data-goto="map">Level Select</button>
+        <button class="btn btn-big" data-goto="sandbox">Sandbox <span class="muted">· free coding</span></button>
+        <button class="btn btn-big" id="btn-story">Story so far</button>
+        <button class="btn btn-big" data-goto="howto">How to Play</button>
+        <button class="btn btn-big" id="btn-settings">Settings</button>
+      </nav>
+
+      <p class="menu-foot">Real R runs right in your browser – nothing to install.</p>
+    </div>
+  </section>
+
+  <!-- ============ STORY ============ -->
+  <section id="screen-story" class="screen">
+    <div class="story-sky" aria-hidden="true"></div>
+    <button class="btn btn-ghost story-skip" id="story-skip">Skip ›</button>
+    <div class="story-stage">
+      <div class="story-art" id="story-art"></div>
+      <div class="story-text" id="story-text"></div>
+      <div class="story-foot">
+        <div class="story-dots" id="story-dots"></div>
+        <button class="btn btn-primary" id="story-next">Next ›</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ LEVEL MAP ============ -->
+  <section id="screen-map" class="screen">
+    <header class="topbar">
+      <button class="btn btn-ghost" data-goto="menu">← Menu</button>
+      <h2>Choose a Level</h2>
+      <div class="spacer"></div>
+    </header>
+    <div class="map-grid" id="map-grid"></div>
+  </section>
+
+  <!-- ============ LEVEL (lesson list) ============ -->
+  <section id="screen-level" class="screen">
+    <header class="topbar">
+      <button class="btn btn-ghost" data-goto="map">← Levels</button>
+      <h2 id="level-title">Level</h2>
+      <div class="spacer"></div>
+    </header>
+    <div class="level-wrap">
+      <div class="level-intro" id="level-intro"></div>
+      <ol class="lesson-path" id="lesson-path"></ol>
+    </div>
+  </section>
+
+  <!-- ============ LESSON (tutorial + challenge + IDE) ============ -->
+  <section id="screen-lesson" class="screen">
+    <header class="topbar">
+      <button class="btn btn-ghost" id="lesson-back">← Lessons</button>
+      <h2 id="lesson-title">Lesson</h2>
+      <div class="spacer"></div>
+    </header>
+
+    <div class="workspace">
+      <!-- Left: tutorial / challenge -->
+      <aside class="panel guide">
+        <div class="tabs">
+          <button class="tab active" data-tab="tutorial">📖 Tutorial</button>
+          <button class="tab" data-tab="challenge">🎯 Challenge</button>
+        </div>
+
+        <div class="tab-body" id="tab-tutorial">
+          <div class="tut-progress" id="tut-progress"></div>
+          <div class="tut-page" id="tut-page"></div>
+          <div class="tut-nav">
+            <button class="btn" id="tut-prev">← Back</button>
+            <button class="btn btn-primary" id="tut-next">Next →</button>
+          </div>
+        </div>
+
+        <div class="tab-body hidden" id="tab-challenge">
+          <div id="challenge-body"></div>
+          <div class="hint-box" id="hint-box"></div>
+          <div class="challenge-actions">
+            <button class="btn btn-small" id="btn-hint">💡 Hint</button>
+            <button class="btn btn-small btn-ghost hidden" id="btn-solution">Show solution</button>
+          </div>
+          <div class="feedback" id="feedback"></div>
+        </div>
+      </aside>
+
+      <!-- Right: IDE -->
+      <main class="panel ide">
+        <div class="ide-toolbar">
+          <span class="file-name">script.R</span>
+          <div class="spacer"></div>
+          <button class="btn btn-small btn-ghost" id="btn-reset" title="Put the starter code back">↺ Reset</button>
+          <button class="btn btn-small" id="btn-run" title="Ctrl + Enter">▶ Run</button>
+          <button class="btn btn-small btn-primary" id="btn-submit" title="Ctrl + Shift + Enter">✔ Submit</button>
+        </div>
+        <div class="editor-host" id="editor-host"></div>
+        <div class="console-head">
+          <span>Console</span>
+          <div class="spacer"></div>
+          <button class="btn btn-tiny btn-ghost" id="btn-clear">Clear</button>
+        </div>
+        <div class="console" id="console"></div>
+        <div class="plot-area hidden" id="plot-area"></div>
+      </main>
+    </div>
+  </section>
+
+  <!-- ============ SANDBOX ============ -->
+  <section id="screen-sandbox" class="screen">
+    <header class="topbar">
+      <button class="btn btn-ghost" data-goto="menu">← Menu</button>
+      <h2>Sandbox</h2>
+      <div class="spacer"></div>
+    </header>
+    <div class="workspace sandbox">
+      <main class="panel ide">
+        <div class="ide-toolbar">
+          <span class="file-name">sandbox.R</span>
+          <span class="muted small">Experiment freely – your code is saved automatically.</span>
+          <div class="spacer"></div>
+          <button class="btn btn-small" id="sb-run" title="Ctrl + Enter">▶ Run</button>
+        </div>
+        <div class="editor-host" id="sb-editor-host"></div>
+        <div class="console-head">
+          <span>Console</span>
+          <div class="spacer"></div>
+          <button class="btn btn-tiny btn-ghost" id="sb-clear">Clear</button>
+        </div>
+        <div class="console" id="sb-console"></div>
+        <div class="plot-area hidden" id="sb-plot-area"></div>
+      </main>
+    </div>
+  </section>
+
+  <!-- ============ HOW TO PLAY ============ -->
+  <section id="screen-howto" class="screen">
+    <header class="topbar">
+      <button class="btn btn-ghost" data-goto="menu">← Menu</button>
+      <h2>How to Play</h2>
+      <div class="spacer"></div>
+    </header>
+    <div class="howto">
+      <div class="howto-card"><span class="num">1</span><h3>Learn</h3><p>Every lesson starts with a short tutorial. Press <b>▶ Run</b> on any example to see what it does.</p></div>
+      <div class="howto-card"><span class="num">2</span><h3>Experiment</h3><p>Write code in the editor and press <b>▶ Run</b> (or <kbd>Ctrl</kbd>+<kbd>Enter</kbd>) as often as you like. Nothing is marked until you submit.</p></div>
+      <div class="howto-card"><span class="num">3</span><h3>Submit</h3><p>When you think you've solved the challenge, press <b>✔ Submit</b> (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Enter</kbd>). The game runs your code and checks it.</p></div>
+      <div class="howto-card"><span class="num">4</span><h3>Earn XP</h3><p>Each challenge is worth XP. Hints are free to look at but cost a little XP. Finish every lesson to clear the level and unlock the next.</p></div>
+      <div class="howto-card wide"><h3>Reading the console</h3>
+        <p>Lines starting with <code>&gt;</code> are your code. Lines like <code>[1] 42</code> are R's answers – the <code>[1]</code> just means "first item". Red text is an error: read it carefully, it usually tells you exactly what went wrong, and the 💡 tip underneath will help.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ MODALS ============ -->
+  <div class="modal-backdrop hidden" id="modal">
+    <div class="modal" id="modal-box"></div>
+  </div>
+
+  <!-- Level data: add new level files here -->
+  <script src="levels/registry.js"></script>
+  <script src="levels/story.js"></script>
+  <script src="levels/level01.js"></script>
+
+  <!-- Game code -->
+  <script src="js/storage.js"></script>
+  <script src="js/r-engine.js"></script>
+  <script src="js/editor.js"></script>
+  <script src="js/checker.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
