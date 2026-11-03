@@ -37,13 +37,13 @@ RQuest.registerLevel('level01', {
             <pre class="r">print("Welcome to R Quest!")</pre>`,
         },
         {
-          title: 'The print() function',
+          title: 'The print( ) function',
           body: `
             <p><code>print()</code> is a <b>function</b>: a named command that does a job. You put the thing you want
             it to work on inside the round brackets <code>( )</code>.</p>
             <pre class="r">print("I can talk to R")</pre>
             <p>Text in R is called a <b>string</b>, and it must always be wrapped in quotes. Double quotes
-            <code>"like this"</code> or single quotes <code>'like this'</code> both work.</p>
+            <code>"like this"</code> or single quotes <code>'like this'</code> both work, but I prefer to always use double quotes.</p>
             <pre class="r">print('Single quotes work too')</pre>
             <p>Each line of code is its own instruction. R runs them top to bottom:</p>
             <pre class="r">print("First")
@@ -53,13 +53,13 @@ print("Third")</pre>`,
         {
           title: 'Watch out for these!',
           body: `
-            <p>R is <b>case-sensitive</b>. <code>print</code> works, but <code>Print</code> or <code>PRINT</code> don't.</p>
+            <p>R is <b>case-sensitive</b>. <code>print</code> works, but <code>Print</code> or <code>PRINT</code> don't. Always double check this, you have no idea how many times a program won't run for me because of one capital letter!</p>
             <pre class="r">Print("This will cause an error")</pre>
             <p>Forgetting the quotes also causes an error, because R thinks the words are names of things it should already know about:</p>
             <pre class="r">print(Hello)</pre>
             <div class="callout"><b>Errors are normal!</b>Every programmer sees errors all day. Read the red message, it usually tells you
             exactly what's wrong. The game also adds a 💡 tip underneath to help.</div>
-            <p>You'll see <code>[1]</code> before R's answers. It just means "this is item number 1". You'll find out why when we meet vectors.</p>`,
+            <p>You'll see <code>[1]</code> before R's answers. It just means "this is item number 1". You'll find out why when we learn about vectors.</p>`,
         },
       ],
       challenge: {
